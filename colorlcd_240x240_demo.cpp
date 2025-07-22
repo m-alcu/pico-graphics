@@ -153,27 +153,24 @@ int main() {
         msMax=0;
     }
 
+    polyMode = 0;
+    orient = 0;
+    bfCull = 1;
+    lightShade = 0;
     switch(object) {
-      case 0:
+        case 0:
         numVerts  = numVertsCubeQ;
         verts     = (int16_t*)vertsCubeQ;
         numPolys  = numQuadsCubeQ;
         polys     = (uint8_t*)quadsCubeQ;
         polyColors = (uint16_t*)colsCubeQ;
-        lightShade = 0;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
-      case 1:
+        case 1:
         numVerts  = numVertsCubeQ;
         verts     = (int16_t*)vertsCubeQ;
         numPolys  = numQuadsCubeQ;
         polys     = (uint8_t*)quadsCubeQ;
         lightShade = 44000;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 2:
         numVerts  = numVertsCross;
@@ -181,10 +178,6 @@ int main() {
         numPolys  = numQuadsCross;
         polys     = (uint8_t*)quadsCross;
         polyColors = (uint16_t*)colsCross;
-        lightShade = 0;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 3:
         numVerts  = numVertsCross;
@@ -192,9 +185,6 @@ int main() {
         numPolys  = numQuadsCross;
         polys     = (uint8_t*)quadsCross;
         lightShade = 14000;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 4:
         numVerts  = numVerts3;
@@ -202,10 +192,6 @@ int main() {
         numPolys  = numQuads3;
         polys     = (uint8_t*)quads3;
         polyColors = (uint16_t*)cols3;
-        lightShade = 0;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 5:
         numVerts  = numVerts3;
@@ -213,9 +199,6 @@ int main() {
         numPolys  = numQuads3;
         polys     = (uint8_t*)quads3;
         lightShade = 20000;
-        bfCull    = 1;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 6:
         numVerts  = numVertsCubes;
@@ -223,10 +206,7 @@ int main() {
         numPolys  = numQuadsCubes;
         polys     = (uint8_t*)quadsCubes;
         polyColors = (uint16_t*)colsCubes;
-        lightShade = 0;
         bfCull    = 0;
-        orient    = 0;
-        polyMode  = 0;
         break;
     case 7:
         numVerts  = numVertsCubes;
@@ -234,9 +214,7 @@ int main() {
         numPolys  = numQuadsCubes;
         polys     = (uint8_t*)quadsCubes;
         bfCull    = 1;
-        orient    = 0;
         lightShade = 14000;
-        polyMode  = 0;
         break;
     case 8:
         numVerts  = numVertsCone;
@@ -244,7 +222,6 @@ int main() {
         numPolys  = numTrisCone;
         polys     = (uint8_t*)trisCone;
         polyColors = (uint16_t*)colsCone;
-        lightShade = 0;
         bfCull    = 1;
         orient    = 1;
         polyMode  = 1;
@@ -266,7 +243,6 @@ int main() {
         numPolys  = numTrisTorus;
         polys     = (uint8_t*)trisTorus;
         polyColors = (uint16_t*)colsTorus;
-        lightShade = 0;
         bfCull    = 1;
         orient    = 1;
         polyMode  = 1;
