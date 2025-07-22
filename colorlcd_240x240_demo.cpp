@@ -26,6 +26,104 @@ uint16_t frBuf[SCR_WD*NLINES];
 ST7789 st7789(WIDTH, HEIGHT, ROTATE_0, false, get_spi_pins(BG_SPI_FRONT));
 PicoGraphics_PenRGB565 graphics(st7789.width, st7789.height, frBuf);
 
+int buttonState;
+int prevState = true;
+long btDebounce    = 30;
+long btMultiClick  = 600;
+long btLongClick   = 500;
+long btLongerClick = 2000;
+long btTime = 0, btTime2 = 0;
+int clickCnt = 1;
+
+// 0=idle, 1,2,3=click, -1,-2=longclick
+int checkButton( bool state)
+{
+  if( state == false && prevState == true ) { btTime = millis(); prevState = state; return 0; } // button just pressed
+  if( state == true && prevState == false ) { // button just released
+    prevState = state;
+    if( millis()-btTime >= btDebounce && millis()-btTime < btLongClick ) { 
+      if( millis()-btTime2<btMultiClick ) clickCnt++; else clickCnt=1;
+      btTime2 = millis();
+      return clickCnt; 
+    } 
+  }
+  if( state == false && millis()-btTime >= btLongerClick ) { prevState = state; return -2; }
+  if( state == false && millis()-btTime >= btLongClick ) { prevState = state; return -1; }
+  return 0;
+}
+
+int prevButtonState=0;
+
+int handleButton(bool button)
+{
+  prevButtonState = buttonState;
+  buttonState = checkButton(button);
+  return buttonState;
+}
+
+unsigned int ms, msMin=1000, msMax=0, stats=1, optim=0; // optim=1 for ST7735, 0 for ST7789
+
+void showStats() {
+    Pen WHITE   = graphics.create_pen(255, 255, 255);
+    Pen YELLOW  = graphics.create_pen(255, 255, 0);
+    Pen GREEN   = graphics.create_pen(0, 255, 0);
+    Pen MAGENTA = graphics.create_pen(255, 0, 255);
+    Pen BLACK   = graphics.create_pen(0, 0, 0);
+
+    char txt[30];
+ 
+    if (ms < msMin) msMin = ms;
+    if (ms > msMax) msMax = ms;
+
+    if (optim == 0) {
+        snprintf(txt, 30, "%d ms     %d fps ", ms, 1000 / ms);
+        graphics.set_pen(YELLOW);
+        graphics.text(txt, Point(0, SCR_HT - 32), 240);
+
+        snprintf(txt, 30, "%d-%d ms  %d-%d fps   ", msMin, msMax, 1000 / msMax, 1000 / msMin);
+        graphics.set_pen(GREEN);
+        graphics.text(txt, Point(0, SCR_HT - 22), 240);
+
+        snprintf(txt, 30, "total/vis %d / %d   ", numPolys, numVisible);
+        graphics.set_pen(MAGENTA);
+        graphics.text(txt, Point(0, SCR_HT - 12), 240);
+    }
+    else if (optim == 1) {
+        optim = 2;
+
+        graphics.set_pen(YELLOW);
+        graphics.text("00 ms     00 fps", Point(0, SCR_HT - 28), 240);
+
+        graphics.set_pen(GREEN);
+        graphics.text("00-00 ms  00-00 fps", Point(0, SCR_HT - 18), 240);
+
+        graphics.set_pen(MAGENTA);
+        graphics.text("total/vis 000 / 000", Point(0, SCR_HT - 8), 240);
+    }
+    else {
+        graphics.set_pen(YELLOW);
+        snprintf(txt, 30, "%2d", ms);
+        graphics.text(txt, Point(0, SCR_HT - 28), 240);
+
+        snprintf(txt, 30, "%2d", 1000 / ms);
+        graphics.text(txt, Point(60, SCR_HT - 28), 240);  // 10*6
+
+        graphics.set_pen(GREEN);
+        snprintf(txt, 30, "%2d-%2d", msMin, msMax);
+        graphics.text(txt, Point(0, SCR_HT - 18), 240);
+
+        snprintf(txt, 30, "%2d-%2d", 1000 / msMax, 1000 / msMin);
+        graphics.text(txt, Point(60, SCR_HT - 18), 240);
+
+        graphics.set_pen(MAGENTA);
+        snprintf(txt, 30, "%3d", numPolys);
+        graphics.text(txt, Point(60, SCR_HT - 8), 240);  // 10*6
+
+        snprintf(txt, 30, "%3d", numVisible);
+        graphics.text(txt, Point(96, SCR_HT - 8), 240);  // 16*6
+    }
+}
+
 int main() {
   st7789.set_backlight(255);
 
@@ -35,19 +133,25 @@ int main() {
 
   bool last_button = true;
 
-  Pen WHITE = graphics.create_pen(255, 255, 255);
-
+  
   initStars();
 
   while(true) {
 
-    // Simple button debounce
     bool button = gpio_get(BUTTON_PIN);
-    if(!button && last_button) { // Button pressed
-      sleep_ms(200);    // Debounce delay
-      if(++object>MAX_OBJ) object=0;
+    handleButton(button);
+    if(buttonState<0) {
+        if(buttonState==-1 && prevButtonState>=0 && ++bgMode>4) bgMode=0;
+        if(buttonState==-2 && prevButtonState==-1) {
+        stats=!stats; 
+        if(optim) optim=1;
+        }
+    } else
+    if(buttonState>0) {
+        if(++object>MAX_OBJ) object=0;
+        msMin=1000;
+        msMax=0;
     }
-    last_button = button;
 
     switch(object) {
       case 0:
@@ -190,14 +294,19 @@ int main() {
         break;
     }
 
+    ms=millis();
     render3D(polyMode, frBuf);
+    ms=millis()-ms;
+    if(stats) showStats();
 
-    graphics.set_pen(WHITE);
-    graphics.text("Hello World - " + std::to_string(object), Point(0, 0), 240);
+    //graphics.set_pen(WHITE);
+    //graphics.text("Hello World - " + std::to_string(object), Point(0, 0), 240);
 
     // update screen
     st7789.update(&graphics);
-  }
 
+    }
+    
     return 0;
 }
+
