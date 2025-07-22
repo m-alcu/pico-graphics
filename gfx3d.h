@@ -21,7 +21,8 @@
 */
 
 #include "libraries/pico_graphics/pico_graphics.hpp"
-#include "models3d.h"
+
+uint16_t BLACK = pimoroni::RGB(0, 0, 0).to_rgb565(); // BLACK
 
 #include "pat2.h"
 #include "pat7.h"
@@ -229,7 +230,7 @@ void drawQuads(int16_t *v2d, uint16_t* frBuf)
     if(lightShade>0) {
       c = normZ[q]*255/lightShade;
       if(c>255) c=255;
-      drawQuad(v2d[2*v0+0],v2d[2*v0+1],  v2d[2*v1+0],v2d[2*v1+1], v2d[2*v2+0],v2d[2*v2+1], v2d[2*v3+0],v2d[2*v3+1], (c,c,c/2), frBuf);
+      drawQuad(v2d[2*v0+0],v2d[2*v0+1],  v2d[2*v1+0],v2d[2*v1+1], v2d[2*v2+0],v2d[2*v2+1], v2d[2*v3+0],v2d[2*v3+1], pimoroni::RGB(c,c,c/2).to_rgb565(), frBuf);
     } else
       drawQuad(v2d[2*v0+0],v2d[2*v0+1],  v2d[2*v1+0],v2d[2*v1+1], v2d[2*v2+0],v2d[2*v2+1], v2d[2*v3+0],v2d[2*v3+1], polyColors[q], frBuf);
   }
@@ -361,7 +362,7 @@ void backgroundStars(int f, uint16_t* frBuf)
 int t=0;
 
 // mode=0 for quads, mode=1 for tris
-void render3D(int mode=0, uint16_t* frBuf)
+void render3D(int mode, uint16_t* frBuf)
 {
   int cos0,sin0,cos1,sin1;
   int i,x0,y0,z0,fac,distToObj;
